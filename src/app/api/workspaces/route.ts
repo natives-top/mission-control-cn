@@ -45,9 +45,25 @@ export async function GET(request: NextRequest) {
           done: 0,
           total: 0
         };
-        
+
+        const baseTaskCountKeys = [
+          'pending_dispatch',
+          'planning',
+          'inbox',
+          'assigned',
+          'in_progress',
+          'testing',
+          'review',
+          'done',
+        ] as const satisfies readonly (keyof WorkspaceStats['taskCounts'])[];
+
         taskCounts.forEach(tc => {
-          counts[tc.status] = tc.count;
+          const status = String(tc.status);
+          if (status === 'verification' || /^verification_v\d+$/.test(status)) {
+            counts.verification += tc.count;
+          } else if ((baseTaskCountKeys as readonly string[]).includes(status)) {
+            counts[status as (typeof baseTaskCountKeys)[number]] += tc.count;
+          }
           counts.total += tc.count;
         });
         

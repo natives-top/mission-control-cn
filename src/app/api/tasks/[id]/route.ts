@@ -169,11 +169,11 @@ export async function PATCH(
       // Workflow status guard: prevent moving into statuses not defined by the task's workflow template.
       // This avoids tasks getting "stuck" in columns the workflow doesn't know how to handle.
       const workflow = getTaskWorkflow(id);
-      const isVerificationStage = (s: Task['status'] | undefined) =>
+      const isVerificationStage = (s: string | undefined) =>
         s === 'verification' || /^verification_v\d+$/.test(String(s));
 
       const workflowControlled: Array<Task['status']> = ['in_progress', 'testing', 'review', 'verification', 'done'];
-      if (workflow && (workflowControlled.includes(nextStatus as any) || isVerificationStage(nextStatus))) {
+      if (workflow && (workflowControlled.includes(nextStatus as Task['status']) || isVerificationStage(nextStatus))) {
         const allowed = Array.from(new Set(workflow.stages.map(s => s.status)));
         if (!allowed.includes(nextStatus as any)) {
           return NextResponse.json(

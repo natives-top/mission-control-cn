@@ -9,7 +9,7 @@ import { queryOne, queryAll, run } from '@/lib/db';
 import { pickDynamicAgent, escalateFailureIfNeeded, recordLearnerOnTransition } from '@/lib/task-governance';
 import { getMissionControlUrl } from '@/lib/config';
 import { broadcast } from '@/lib/events';
-import type { Task, WorkflowTemplate, WorkflowStage, TaskRole } from '@/lib/types';
+import type { Task, TaskStatus, WorkflowTemplate, WorkflowStage, TaskRole } from '@/lib/types';
 
 interface StageTransitionResult {
   success: boolean;
@@ -60,7 +60,7 @@ function parseTemplate(row: { id: string; workspace_id: string; name: string; de
   // Normalize multiple verification rounds so second one becomes verification_v2.
   // This prevents the same `status` (verification) from being treated as multiple distinct stages.
   let verificationRound = 0;
-  const normalizedStages = parsedStages.map((s) => {
+  const normalizedStages: WorkflowStage[] = parsedStages.map((s): WorkflowStage => {
     const isVerification =
       s.status === 'verification' || /^verification_v\d+$/.test(String(s.status));
     if (!isVerification) return s;
@@ -68,7 +68,7 @@ function parseTemplate(row: { id: string; workspace_id: string; name: string; de
     verificationRound += 1;
     if (verificationRound === 1) return { ...s, status: 'verification' };
     // verificationRound=2 => verification_v2, verificationRound=3 => verification_v3, ...
-    return { ...s, status: `verification_v${verificationRound}` as any as TaskStatus };
+    return { ...s, status: `verification_v${verificationRound}` as TaskStatus };
   });
 
   return {

@@ -43,7 +43,7 @@ export function DiscoverAgentsModal({ onClose, workspaceId }: DiscoverAgentsModa
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     discover();

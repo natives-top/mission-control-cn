@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { ImagePlus, X, Loader2 } from 'lucide-react';
 import type { TaskImage } from '@/lib/types';
 import { useTranslations } from 'next-intl';
@@ -109,11 +110,15 @@ export function TaskImages({ taskId }: TaskImagesProps) {
         <div className="grid grid-cols-2 gap-2">
           {images.map((img) => (
             <div key={img.filename} className="group relative rounded-lg overflow-hidden border border-mc-border bg-mc-bg">
-              <img
-                src={`/api/task-images/${taskId}/${img.filename}`}
-                alt={img.original_name}
-                className="w-full h-32 object-cover"
-              />
+              <div className="relative h-32 w-full bg-mc-bg">
+                <Image
+                  src={`/api/task-images/${taskId}/${img.filename}`}
+                  alt={img.original_name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 50vw, 200px"
+                />
+              </div>
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                 <button
                   onClick={() => handleDelete(img.filename)}

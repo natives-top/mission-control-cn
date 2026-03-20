@@ -75,7 +75,7 @@ export function MissionQueue({workspaceId, mobileMode = false, isPortrait = true
       arr.push(task);
       map.set(parentId, arr);
     }
-    for (const [k, arr] of map.entries()) {
+    for (const [k, arr] of Array.from(map.entries())) {
       arr.sort((a, b) => {
         const aTime = new Date(a.updated_at || a.created_at).getTime();
         const bTime = new Date(b.updated_at || b.created_at).getTime();
@@ -255,7 +255,7 @@ export function MissionQueue({workspaceId, mobileMode = false, isPortrait = true
   };
 
   const updateTaskStatusWithPersist = async (task: Task, targetStatus: TaskStatus): Promise<boolean> => {
-    if (task.status === targetStatus) return;
+    if (task.status === targetStatus) return true;
 
     if (!isStatusAllowedByWorkflow(task, targetStatus)) {
       showStatusBlocked(task, targetStatus);

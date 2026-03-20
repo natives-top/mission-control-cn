@@ -59,6 +59,8 @@ export class OpenClawClient extends EventEmitter {
   private authenticated = false; // Track auth state separately from connection state
   private connecting: Promise<void> | null = null; // Lock to prevent multiple simultaneous connection attempts
   private autoReconnect = true;
+  private authBlockedUntil = 0;
+  private authBlockReason: string | null = null;
   private token: string;
   private deviceIdentity: { deviceId: string; publicKeyPem: string; privateKeyPem: string } | null = null;
   private messageHandlers = new Set<(event: MessageEvent) => void>(); // Track all message handlers for cleanup
@@ -177,6 +179,14 @@ export class OpenClawClient extends EventEmitter {
   }
 
   async connect(): Promise<void> {
+    const now = Date.now();
+    if (this.authBlockedUntil > now) {
+      const secondsLeft = Math.ceil((this.authBlockedUntil - now) / 1000);
+      throw new Error(
+        `OpenClaw connect temporarily blocked (${secondsLeft}s): ${this.authBlockReason || 'authentication failed'}`
+      );
+    }
+
     // If already connected, return immediately
     if (this.connected && this.ws?.readyState === WebSocket.OPEN) {
       return;
@@ -354,6 +364,13 @@ export class OpenClawClient extends EventEmitter {
                   resolve();
                 },
                 reject: (error: Error) => {
+                  const msg = String(error.message || '');
+                  if (/pairing required/i.test(msg)) {
+                    this.authBlockedUntil = Date.now() + 60_000;
+                    this.authBlockReason = 'pairing required';
+                    this.autoReconnect = false;
+                    console.warn('[OpenClaw] Authentication requires pairing; backing off reconnect for 60s');
+                  }
                   this.connecting = null;
                   this.ws?.close();
                   reject(new Error(`Authentication failed: ${error.message}`));
@@ -552,6 +569,8 @@ export class OpenClawClient extends EventEmitter {
     }
     this.connected = false;
     this.authenticated = false;
+    this.authBlockedUntil = 0;
+    this.authBlockReason = null;
     this.connecting = null;
     this.messageHandlers.clear(); // Clear all tracked handlers
     // Note: globalProcessedEvents is NOT cleared as it's shared across all instances

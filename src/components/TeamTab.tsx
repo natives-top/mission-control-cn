@@ -317,17 +317,6 @@ export function TeamTab({ taskId, workspaceId }: TeamTabProps) {
       return `验证中(${round})`;
     }
 
-    // If we reach here, status is one of the supported non-verification values.
-    if (status === 'verification') return t('teamStatusVerification');
-    if (status === 'done') return t('teamStatusDone');
-    if (status === 'inbox') return t('teamStatusInbox');
-    if (status === 'assigned') return t('teamStatusAssigned');
-    if (status === 'in_progress') return t('teamStatusInProgress');
-    if (status === 'testing') return t('teamStatusTesting');
-    if (status === 'review') return t('teamStatusReview');
-    if (status === 'planning') return 'planning';
-    if (status === 'pending_dispatch') return 'pending_dispatch';
-
     return String(status);
   };
 

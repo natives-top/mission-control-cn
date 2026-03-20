@@ -62,7 +62,7 @@ export function deleteTaskCascade(rootTaskId: string): string[] {
 
     const now = new Date().toISOString();
     const placeholders = ids.map(() => '?').join(',');
-    for (const agentId of agentIds) {
+    for (const agentId of Array.from(agentIds)) {
       const otherActive = queryOne<{ count: number }>(
         `SELECT COUNT(*) as count FROM tasks
          WHERE assigned_agent_id = ?
